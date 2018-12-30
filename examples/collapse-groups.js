@@ -44,7 +44,7 @@
                 title: 'Overlays',
                 layers: [
                     new ol.layer.Image({
-                        title: 'Countries',
+                        title: 'Countries ultra long title is Ok to test',
                         source: new ol.source.ImageArcGISRest({
                             ratio: 1,
                             params: {'LAYERS': 'show:0'},
@@ -61,7 +61,8 @@
     });
 
     var layerSwitcher = new ol.control.LayerSwitcher({
-        tipLabel: 'Légende' // Optional label for button
+        tipLabel: 'Légende', // Optional label for button
+        isMouseOver: false
     });
     map.addControl(layerSwitcher);
 

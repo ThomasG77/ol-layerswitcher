@@ -20,6 +20,8 @@ export default class LayerSwitcher extends Control {
         var tipLabel = options.tipLabel ?
             options.tipLabel : 'Legend';
 
+        var isMouseOver = (options.isMouseOver !== false);
+
         var element = document.createElement('div');
 
         super({element: element, target: options.target});
@@ -31,6 +33,11 @@ export default class LayerSwitcher extends Control {
             this.hiddenClassName += ' touch';
         }
         this.shownClassName = 'shown';
+
+        this.mouseOver = isMouseOver;
+        if (!this.mouseOver) {
+            this.clickClassName = 'click';
+        }
 
         element.className = this.hiddenClassName;
 
@@ -45,22 +52,30 @@ export default class LayerSwitcher extends Control {
 
         var this_ = this;
 
-        button.onmouseover = function(e) {
-            this_.showPanel();
-        };
+        if (this.isMouseOver) {
+            button.onmouseover = function(e) {
+                this_.showPanel();
+            };
+        }
 
         button.onclick = function(e) {
             e = e || window.event;
-            this_.showPanel();
+            if (this_.isButtonShown()) {
+                this_.showPanel();
+            } else {
+                this_.hidePanel();
+            }
             e.preventDefault();
         };
 
-        this_.panel.onmouseout = function(e) {
-            e = e || window.event;
-            if (!this_.panel.contains(e.toElement || e.relatedTarget)) {
-                this_.hidePanel();
-            }
-        };
+        if (this.isMouseOver) {
+            this_.panel.onmouseout = function(e) {
+                e = e || window.event;
+                if (!this_.panel.contains(e.toElement || e.relatedTarget)) {
+                    this_.hidePanel();
+                }
+            };
+        }
 
     }
 
@@ -78,9 +93,11 @@ export default class LayerSwitcher extends Control {
         super.setMap(map);
         if (map) {
             var this_ = this;
-            this.mapListeners.push(map.on('pointerdown', function() {
-                this_.hidePanel();
-            }));
+            if (this.mouseOver) {
+                this.mapListeners.push(map.on('pointerdown', function() {
+                    this_.hidePanel();
+                }));
+            }
             this.renderPanel();
         }
     }
@@ -89,6 +106,9 @@ export default class LayerSwitcher extends Control {
     * Show the layer panel.
     */
     showPanel() {
+        if (!this.element.classList.contains(this.clickClassName) && !(this.mouseOver)) {
+            this.element.classList.add(this.clickClassName);
+        }
         if (!this.element.classList.contains(this.shownClassName)) {
             this.element.classList.add(this.shownClassName);
             this.renderPanel();
@@ -99,9 +119,16 @@ export default class LayerSwitcher extends Control {
     * Hide the layer panel.
     */
     hidePanel() {
+        if (this.element.classList.contains(this.clickClassName) && !(this.mouseOver)) {
+            this.element.classList.remove(this.clickClassName);
+        }
         if (this.element.classList.contains(this.shownClassName)) {
             this.element.classList.remove(this.shownClassName);
         }
+    }
+
+    isButtonShown() {
+        return !this.element.classList.contains(this.shownClassName);
     }
 
     /**

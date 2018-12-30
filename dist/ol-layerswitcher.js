@@ -118,6 +118,8 @@ var LayerSwitcher = function (_Control) {
 
         var tipLabel = options.tipLabel ? options.tipLabel : 'Legend';
 
+        var isMouseOver = options.isMouseOver !== false;
+
         var element = document.createElement('div');
 
         var _this = possibleConstructorReturn(this, (LayerSwitcher.__proto__ || Object.getPrototypeOf(LayerSwitcher)).call(this, { element: element, target: options.target }));
@@ -129,6 +131,11 @@ var LayerSwitcher = function (_Control) {
             _this.hiddenClassName += ' touch';
         }
         _this.shownClassName = 'shown';
+
+        _this.mouseOver = isMouseOver;
+        if (!_this.mouseOver) {
+            _this.clickClassName = 'click';
+        }
 
         element.className = _this.hiddenClassName;
 
@@ -143,22 +150,30 @@ var LayerSwitcher = function (_Control) {
 
         var this_ = _this;
 
-        button.onmouseover = function (e) {
-            this_.showPanel();
-        };
+        if (_this.isMouseOver) {
+            button.onmouseover = function (e) {
+                this_.showPanel();
+            };
+        }
 
         button.onclick = function (e) {
             e = e || window.event;
-            this_.showPanel();
+            if (this_.isButtonShown()) {
+                this_.showPanel();
+            } else {
+                this_.hidePanel();
+            }
             e.preventDefault();
         };
 
-        this_.panel.onmouseout = function (e) {
-            e = e || window.event;
-            if (!this_.panel.contains(e.toElement || e.relatedTarget)) {
-                this_.hidePanel();
-            }
-        };
+        if (_this.isMouseOver) {
+            this_.panel.onmouseout = function (e) {
+                e = e || window.event;
+                if (!this_.panel.contains(e.toElement || e.relatedTarget)) {
+                    this_.hidePanel();
+                }
+            };
+        }
 
         return _this;
     }
@@ -181,9 +196,11 @@ var LayerSwitcher = function (_Control) {
             get(LayerSwitcher.prototype.__proto__ || Object.getPrototypeOf(LayerSwitcher.prototype), 'setMap', this).call(this, map);
             if (map) {
                 var this_ = this;
-                this.mapListeners.push(map.on('pointerdown', function () {
-                    this_.hidePanel();
-                }));
+                if (this.mouseOver) {
+                    this.mapListeners.push(map.on('pointerdown', function () {
+                        this_.hidePanel();
+                    }));
+                }
                 this.renderPanel();
             }
         }
@@ -195,6 +212,9 @@ var LayerSwitcher = function (_Control) {
     }, {
         key: 'showPanel',
         value: function showPanel() {
+            if (!this.element.classList.contains(this.clickClassName) && !this.mouseOver) {
+                this.element.classList.add(this.clickClassName);
+            }
             if (!this.element.classList.contains(this.shownClassName)) {
                 this.element.classList.add(this.shownClassName);
                 this.renderPanel();
@@ -208,9 +228,17 @@ var LayerSwitcher = function (_Control) {
     }, {
         key: 'hidePanel',
         value: function hidePanel() {
+            if (this.element.classList.contains(this.clickClassName) && !this.mouseOver) {
+                this.element.classList.remove(this.clickClassName);
+            }
             if (this.element.classList.contains(this.shownClassName)) {
                 this.element.classList.remove(this.shownClassName);
             }
+        }
+    }, {
+        key: 'isButtonShown',
+        value: function isButtonShown() {
+            return !this.element.classList.contains(this.shownClassName);
         }
 
         /**

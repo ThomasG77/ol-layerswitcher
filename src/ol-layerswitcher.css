@@ -119,3 +119,11 @@
     overflow: hidden;
     height: 0;
 }
+
+.click button {
+    right: 5px;
+    padding-left: 28px;
+    position: absolute;
+    top: 5px;
+    display: block !important;
+}
